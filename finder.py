@@ -46,11 +46,13 @@ def get_input(*argv) -> str:
 
 def find_translate_tags(project_directory: str) -> Dict[str, str]:
     def prepare_string(s):
-        return s.strip("''").strip('"')
+        return s.strip("''").strip('"').replace('&quot;', '')
 
     p1 = subprocess.Popen(['ag', '-o', '--nofilename', '--nobreak', '--silent',
-            '{{.*\| (translate)}}', project_directory], stdout=subprocess.PIPE)
-    output = subprocess.check_output(['ag', '-o', '(?:"|\').*?(?:"|\')'],
+            '{{[^{]*\| (translate) ?}}', project_directory],
+            stdout=subprocess.PIPE)
+    output = subprocess.check_output(['ag', '-o',
+            '(?:"|\'|&quot;).*?(?:"|\'|&quot;)'],
             stdin=p1.stdout)
     return {(prepare_string(e), prepare_string(e))
             for e in output.decode().strip().split('\n')}
@@ -62,7 +64,10 @@ def get_current_translations(locale_directory) -> Dict[str, Dict[str, str]]:
         if file_.endswith('.json'):
             file_path = os.path.join(locale_directory, file_)
             with open(file_path) as data:
-                translations[file_path] = json.load(data)
+                try:
+                    translations[file_path] = json.load(data)
+                except json.decoder.JSONDecodeError:
+                    translations[file_path] = {}
     return translations
 
 

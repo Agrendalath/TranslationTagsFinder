@@ -49,7 +49,7 @@ def find_translate_tags(project_directory: str) -> Dict[str, str]:
         return s.strip("''").strip('"').replace('&quot;', '')
 
     p1 = subprocess.Popen(['ag', '-o', '--nofilename', '--nobreak', '--silent',
-            '{{[^{]*\| (translate) ?}}', project_directory],
+            '{{[^{]*\| translate ?(?:\||}})', project_directory],
             stdout=subprocess.PIPE)
     output = subprocess.check_output(['ag', '-o',
             '(?:"|\'|&quot;).*?(?:"|\'|&quot;)'],
